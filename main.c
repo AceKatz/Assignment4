@@ -148,7 +148,7 @@ server_thread_per(int accept_fd)
                 {
                     printf("Eat a dick!\n");
                     ticker--;
-        /*            count--;*/
+                    count--;
                 }
                 printf("COUNT AFTER JOIN: %3d\n",count);
             }
