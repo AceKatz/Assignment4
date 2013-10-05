@@ -33,7 +33,7 @@
 #include "cas.h"
 
 #define MAX_DATA_SZ 1024
-#define MAX_CONCURRENCY 25//6
+#define MAX_CONCURRENCY 256
 
 /* 
  * This is the function for handling a _single_ request.  Understand
@@ -127,25 +127,32 @@ server_thread_per(int accept_fd)
     pthread_t thread;
     pthread_t *threadArray = malloc(sizeof(pthread_t) * MAX_CONCURRENCY);
     int fd;
+    int i;
     int count = 0;
     int ticker = 0;
     for(;;) {
         fd = server_accept(accept_fd);
-        if (!pthread_create(&threadArray[ticker], NULL, (void*)&client_process, (void*) fd)) 
-        {
-            printf("FUCK YOU!\n");
-            count++;
-            ticker++;
+        if (count < MAX_CONCURRENCY) {
+            if (!pthread_create(&thread, NULL, (void*)&client_process, (void*) fd)) 
+            {
+                printf("FUCK YOU!\n");
+                count++;
+                threadArray[ticker] = thread;
+                ticker++;
+            }
+            printf("COUNT AFTER CREATE: %3d\n", count);
         }
-        
-        printf("COUNT AFTER CREATE: %3d\n", count);
-        if (!pthread_join(threadArray[ticker-1], NULL)) 
-        {
-            printf("Eat a dick!\n");
-            ticker--;
-/*            count--;*/
+        else {
+            for (i = 0; i < MAX_CONCURRENCY ; i++) {
+                if (!pthread_join(threadArray[i], NULL)) 
+                {
+                    printf("Eat a dick!\n");
+                    ticker--;
+        /*            count--;*/
+                }
+                printf("COUNT AFTER JOIN: %3d\n",count);
+            }
         }
-        printf("COUNT AFTER JOIN: %3d\n",count);
     }
 	return;
 }
