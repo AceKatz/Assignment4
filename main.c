@@ -125,7 +125,6 @@ void
 server_thread_per(int accept_fd)
 {
     // 4!  Work here!
-    pthread_t thread;
     pthread_t *threadArray = malloc(sizeof(pthread_t) * MAX_CONCURRENCY);
     int fd, i;
     int count = 0;
@@ -136,7 +135,6 @@ server_thread_per(int accept_fd)
             if (!pthread_create(&threadArray[ticker], NULL, (void*)&client_process, (void*) fd)) 
             {
                 count++;
-/*                threadArray[ticker] = thread;*/
                 ticker++;
             }
         }
