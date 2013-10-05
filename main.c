@@ -31,6 +31,7 @@
 #include <server.h>		/* server_accept and server_create */
 
 #include "cas.h"
+#include "request.h"
 
 #define MAX_DATA_SZ 1024
 #define MAX_CONCURRENCY 256
@@ -126,23 +127,18 @@ server_thread_per(int accept_fd)
     // 4!  Work here!
     pthread_t thread;
     pthread_t *threadArray = malloc(sizeof(pthread_t) * MAX_CONCURRENCY);
-    int fd;
-    int i;
+    int fd, i;
     int count = 0;
-    int total = 0;//NOT USEFUL CODE.  ONLY FOR DEBUGGING.
     int ticker = 0;
     for(;;) {
-        
         if (count < MAX_CONCURRENCY) {
             fd = server_accept(accept_fd);
-            if (!pthread_create(&thread, NULL, (void*)&client_process, (void*) fd)) 
+            if (!pthread_create(&threadArray[ticker], NULL, (void*)&client_process, (void*) fd)) 
             {
                 count++;
-                threadArray[ticker] = thread;
+/*                threadArray[ticker] = thread;*/
                 ticker++;
-                total++;//NOT USEFUL CODE.  ONLY FOR DEBUGGING.
             }
-            printf("COUNT AFTER CREATE: %3d\tTOTAL: %6d\n", count, total);
         }
         else {
             for (i = 0; i < MAX_CONCURRENCY ; i++) {
@@ -152,7 +148,6 @@ server_thread_per(int accept_fd)
                     count--;
                 }
             }
-            printf("COUNT AFTER JOIN: %3d\n",count);
         }
     }
 	return;
@@ -162,6 +157,7 @@ void
 server_task_queue(int accept_fd)
 {
     //5!  Work here!
+/*    struct request *requests = */
     
     
 	return;
