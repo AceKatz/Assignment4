@@ -129,29 +129,30 @@ server_thread_per(int accept_fd)
     int fd;
     int i;
     int count = 0;
+    int total = 0;//NOT USEFUL CODE.  ONLY FOR DEBUGGING.
     int ticker = 0;
     for(;;) {
-        fd = server_accept(accept_fd);
+        
         if (count < MAX_CONCURRENCY) {
+            fd = server_accept(accept_fd);
             if (!pthread_create(&thread, NULL, (void*)&client_process, (void*) fd)) 
             {
-                printf("FUCK YOU!\n");
                 count++;
                 threadArray[ticker] = thread;
                 ticker++;
+                total++;//NOT USEFUL CODE.  ONLY FOR DEBUGGING.
             }
-            printf("COUNT AFTER CREATE: %3d\n", count);
+            printf("COUNT AFTER CREATE: %3d\tTOTAL: %6d\n", count, total);
         }
         else {
             for (i = 0; i < MAX_CONCURRENCY ; i++) {
                 if (!pthread_join(threadArray[i], NULL)) 
                 {
-                    printf("Eat a dick!\n");
                     ticker--;
                     count--;
                 }
-                printf("COUNT AFTER JOIN: %3d\n",count);
             }
+            printf("COUNT AFTER JOIN: %3d\n",count);
         }
     }
 	return;
