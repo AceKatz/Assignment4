@@ -31,6 +31,7 @@
 #include <server.h>		/* server_accept and server_create */
 
 #include "cas.h"
+#include "request.h"
 
 #define MAX_DATA_SZ 1024
 #define MAX_CONCURRENCY 256
@@ -62,8 +63,7 @@ server_single_request(int accept_fd)
 void
 server_multiple_requests(int accept_fd)
 {
-    for (;;)
-	    client_process(server_accept(accept_fd));
+    for (;;) client_process(server_accept(accept_fd));
 	return;
 }
 
@@ -84,15 +84,13 @@ server_processes(int accept_fd)
                 if (waitpid(connect[i], &status, WNOHANG|WUNTRACED)) {
                     connect[temp] = connect[i];
                     temp++;
-                } else {
+                } else 
                     count++;
-                }
             }
         }
-        if (count >= MAX_CONCURRENCY) {
+        if (count >= MAX_CONCURRENCY) 
             continue;
-                    
-        } else {
+        else {
             fd = server_accept(accept_fd);
             if (childID == -1) {
                 perror("FORK ERROR");
@@ -124,45 +122,54 @@ void
 server_thread_per(int accept_fd)
 {
     // 4!  Work here!
-    pthread_t thread;
     pthread_t *threadArray = malloc(sizeof(pthread_t) * MAX_CONCURRENCY);
-    int fd;
-    int i;
-    int count = 0;
-    int total = 0;
-    int ticker = 0;
+    int fd, i, count = 0;
     for(;;) {
-        
-        if (count < MAX_CONCURRENCY) {
+        if (count < MAX_CONCURRENCY) 
+        {
             fd = server_accept(accept_fd);
-            if (!pthread_create(&thread, NULL, (void*)&client_process, (void*) fd)) 
-            {
+            if (!pthread_create(&threadArray[count], NULL, (void*)&client_process, (void*) fd)) 
                 count++;
-                threadArray[ticker] = thread;
-                ticker++;
-                total++;//NOT USEFUL CODE.  ONLY FOR DEBUGGING.
-            }
-            printf("COUNT AFTER CREATE: %3d\tTOTAL: %6d\n", count, total);
         }
-        else {
-            for (i = 0; i < MAX_CONCURRENCY ; i++) {
+        else 
+            for (i = 0; i < MAX_CONCURRENCY ; i++) 
                 if (!pthread_join(threadArray[i], NULL)) 
-                {
-                    ticker--;
                     count--;
-                }
-            }
-            printf("COUNT AFTER JOIN: %3d\n",count);
-        }
     }
 	return;
+}
+
+volatile int var = 0; 
+
+void 
+pthread_handle (void)
+{
+    int fd;
+    for (;;) {
+        struct request *get = get_request();
+        if (get != NULL) {
+            fd = (get->fd);
+            client_process(fd);
+        }
+    }
+    
 }
 
 void
 server_task_queue(int accept_fd)
 {
     //5!  Work here!
-    
+    int i;
+    pthread_t *threads = malloc(sizeof(pthread_t) * MAX_CONCURRENCY);
+    for (i = 0 ; i < MAX_CONCURRENCY ; i++)
+        pthread_create(&threads[i], NULL, (void *)&pthread_handle, NULL);
+    printf("ALL THREADS CREATED\n");
+    for(;;) 
+    {
+        int fd = server_accept(accept_fd);
+        put_request(req_create((void*)fd));
+        printf("ADDING STUFF!\n");
+    }
     
 	return;
 }
